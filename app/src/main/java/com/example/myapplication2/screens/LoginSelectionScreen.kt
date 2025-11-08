@@ -41,7 +41,8 @@ import kotlin.random.Random
 @Composable
 fun LoginSelectionScreen(
     onGuestClick: () -> Unit,
-    onLoginClick: () -> Unit
+    onLoginClick: () -> Unit,
+    onAboutUsClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var isVisible by remember { mutableStateOf(false) }
@@ -143,6 +144,12 @@ fun LoginSelectionScreen(
                         text = "Guest",
                         onClick = onGuestClick,
                         isPrimary = true
+                    )
+
+                    AnimatedButton(
+                        text = "About Us",
+                        onClick = onAboutUsClick,
+                        isPrimary = false
                     )
                 }
             }

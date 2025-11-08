@@ -48,6 +48,34 @@ enum class CampusSection {
     CROWD_CHECK
 }
 
+// Data class for campus notices with timestamp
+data class Quadruple(
+    val title: String,
+    val description: String,
+    val colorTag: String,
+    val uploadTimestamp: Long // Unix timestamp in milliseconds
+)
+
+// Helper function to calculate hours since upload
+fun calculateCampusNoticeHoursAgo(uploadTimestamp: Long): Int {
+    val currentTime = System.currentTimeMillis()
+    val diffInMillis = currentTime - uploadTimestamp
+    return (diffInMillis / (1000 * 60 * 60)).toInt()
+}
+
+// Helper function to format relative time for campus notices
+fun formatCampusNoticeTime(uploadTimestamp: Long): String {
+    val hoursAgo = calculateCampusNoticeHoursAgo(uploadTimestamp)
+    return when {
+        hoursAgo < 1 -> "Just now"
+        hoursAgo < 24 -> "$hoursAgo ${if (hoursAgo == 1) "hour" else "hours"} ago"
+        else -> {
+            val days = hoursAgo / 24
+            "$days ${if (days == 1) "day" else "days"} ago"
+        }
+    }
+}
+
 @Composable
 fun CampusScreen(onBack: () -> Unit) {
     val context = LocalContext.current
@@ -514,39 +542,45 @@ fun CampusAnnouncementsOverlay(onDismiss: () -> Unit) {
                     ) {
                         itemsIndexed(
                             listOf(
-                                Triple(
+                                Quadruple(
                                     "Library Closed",
                                     "Library closed for cleaning today. Will reopen tomorrow at 9 AM.",
-                                    "🔴"
+                                    "🔴",
+                                    System.currentTimeMillis() - (3 * 60 * 60 * 1000)
                                 ),
-                                Triple(
+                                Quadruple(
                                     "Pool Maintenance",
                                     "Swimming pool under maintenance until Friday. Please avoid the area.",
-                                    "🔵"
+                                    "🔵",
+                                    System.currentTimeMillis() - (8 * 60 * 60 * 1000)
                                 ),
-                                Triple(
+                                Quadruple(
                                     "Photography Club Meet",
                                     "Photography club meeting today at 4 PM in Room 201. All welcome!",
-                                    "🟢"
+                                    "🟢",
+                                    System.currentTimeMillis() - (12 * 60 * 60 * 1000)
                                 ),
-                                Triple(
+                                Quadruple(
                                     "Exam Form Deadline",
                                     "Last date to submit exam forms is tomorrow. Visit office before 5 PM.",
-                                    "🔴"
+                                    "🔴",
+                                    System.currentTimeMillis() - (24 * 60 * 60 * 1000)
                                 ),
-                                Triple(
+                                Quadruple(
                                     "Tech Fest Registration",
                                     "Register for TechFest 2024 before this weekend. Limited slots!",
-                                    "🟣"
+                                    "🟣",
+                                    System.currentTimeMillis() - (48 * 60 * 60 * 1000)
                                 ),
-                                Triple(
+                                Quadruple(
                                     "Canteen Timing Change",
                                     "Canteen will close at 7 PM this week due to staff shortage.",
-                                    "🔵"
+                                    "🔵",
+                                    System.currentTimeMillis() - (72 * 60 * 60 * 1000)
                                 )
                             )
-                        ) { index, (title, desc, color) ->
-                            AnnouncementCard(title, desc, color, index)
+                        ) { index, (title, desc, color, uploadTimestamp) ->
+                            CampusAnnouncementCard(title, desc, color, uploadTimestamp, index)
                         }
                     }
                 }
@@ -561,6 +595,7 @@ fun FeedbackOverlay(onDismiss: () -> Unit) {
     var feedbackText by remember { mutableStateOf("") }
     var customSubject by remember { mutableStateOf("") }
     var showSuccess by remember { mutableStateOf(false) }
+    var feedbackMode by remember { mutableStateOf<FeedbackMode?>(null) } // null = show options, NEW = submit form, PREVIOUS = view history
 
     Box(
         modifier = Modifier
@@ -607,11 +642,33 @@ fun FeedbackOverlay(onDismiss: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(
+                        onClick = {
+                            if (feedbackMode != null) {
+                                feedbackMode = null // Go back to options
+                            } else {
+                                onDismiss()
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = AppWhite
+                        )
+                    }
+
                     Text(
-                        text = "Send Feedback",
+                        text = when (feedbackMode) {
+                            FeedbackMode.NEW -> "Submit Feedback"
+                            FeedbackMode.PREVIOUS -> "Previous Feedback"
+                            null -> "Feedback"
+                        },
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = AppWhite
+                        color = AppWhite,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center
                     )
 
                     IconButton(onClick = onDismiss) {
@@ -625,170 +682,397 @@ fun FeedbackOverlay(onDismiss: () -> Unit) {
 
                 // Content
                 Box(modifier = Modifier.weight(1f)) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    when (feedbackMode) {
+                        null -> FeedbackOptionsScreen(
+                            onNewFeedback = { feedbackMode = FeedbackMode.NEW },
+                            onViewPrevious = { feedbackMode = FeedbackMode.PREVIOUS }
+                        )
+
+                        FeedbackMode.NEW -> NewFeedbackForm(
+                            selectedCategory = selectedCategory,
+                            onCategoryChange = { selectedCategory = it },
+                            feedbackText = feedbackText,
+                            onFeedbackChange = { feedbackText = it },
+                            customSubject = customSubject,
+                            onSubjectChange = { customSubject = it },
+                            showSuccess = showSuccess,
+                            onSubmit = {
+                                showSuccess = true
+                                feedbackText = ""
+                                customSubject = ""
+                            }
+                        )
+
+                        FeedbackMode.PREVIOUS -> PreviousFeedbackList()
+                    }
+                }
+            }
+        }
+    }
+}
+
+enum class FeedbackMode {
+    NEW,
+    PREVIOUS
+}
+
+@Composable
+fun FeedbackOptionsScreen(
+    onNewFeedback: () -> Unit,
+    onViewPrevious: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "What would you like to do?",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = AppPurple,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Submit New Feedback Button
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .clickable(onClick = onNewFeedback),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = AppPurple.copy(alpha = 0.2f)
+            ),
+            border = androidx.compose.foundation.BorderStroke(
+                width = 1.5.dp,
+                color = AppPurple
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "New Feedback",
+                    tint = AppPurple,
+                    modifier = Modifier.size(40.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Submit New Feedback",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppWhite
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // View Previous Feedback Button
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .clickable(onClick = onViewPrevious),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.05f)
+            ),
+            border = androidx.compose.foundation.BorderStroke(
+                width = 1.5.dp,
+                color = AppPurple.copy(alpha = 0.5f)
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.History,
+                    contentDescription = "View Previous",
+                    tint = AppPurple.copy(alpha = 0.8f),
+                    modifier = Modifier.size(40.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "View Previous Feedback",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppWhite.copy(alpha = 0.8f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun NewFeedbackForm(
+    selectedCategory: String,
+    onCategoryChange: (String) -> Unit,
+    feedbackText: String,
+    onFeedbackChange: (String) -> Unit,
+    customSubject: String,
+    onSubjectChange: (String) -> Unit,
+    showSuccess: Boolean,
+    onSubmit: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Category selector
+        Text(
+            "Category:",
+            color = AppPurple,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
+        )
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                listOf("Library", "Canteen").forEach { category ->
+                    FilterChip(
+                        selected = selectedCategory == category,
+                        onClick = { onCategoryChange(category) },
+                        label = { Text(category, fontSize = 13.sp) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                listOf("Hygiene", "Other").forEach { category ->
+                    FilterChip(
+                        selected = selectedCategory == category,
+                        onClick = { onCategoryChange(category) },
+                        label = { Text(category, fontSize = 13.sp) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+
+        // Show custom subject input only when "Other" is selected
+        if (selectedCategory == "Other") {
+            Column {
+                Text(
+                    "Subject:",
+                    color = AppPurple,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = customSubject,
+                    onValueChange = { onSubjectChange(it) },
+                    placeholder = {
+                        Text(
+                            "Enter complaint subject...",
+                            color = AppLightGrey.copy(alpha = 0.6f)
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = AppWhite,
+                        unfocusedTextColor = AppWhite,
+                        focusedBorderColor = AppPurple,
+                        unfocusedBorderColor = AppPurple.copy(alpha = 0.5f),
+                        cursorColor = AppPurple
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+        }
+
+        // Feedback text
+        Column {
+            Text(
+                "Feedback:",
+                color = AppPurple,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = feedbackText,
+                onValueChange = { onFeedbackChange(it) },
+                placeholder = {
+                    Text(
+                        "Write your feedback...",
+                        color = AppLightGrey.copy(alpha = 0.6f)
+                    )
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = AppWhite,
+                    unfocusedTextColor = AppWhite,
+                    focusedBorderColor = AppPurple,
+                    unfocusedBorderColor = AppPurple.copy(alpha = 0.5f),
+                    cursorColor = AppPurple
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
+                maxLines = 6
+            )
+        }
+
+        // Submit button
+        Button(
+            onClick = onSubmit,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AppPurple),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(
+                "Submit Feedback",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        if (showSuccess) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = AppGreen.copy(alpha = 0.2f)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("✅", fontSize = 24.sp)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        "Feedback submitted successfully!",
+                        color = AppGreen,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PreviousFeedbackList() {
+    val previousFeedback = remember {
+        listOf(
+            Triple(
+                "Library - Noisy Environment",
+                "The library has been too noisy lately. Please enforce silence rules.",
+                System.currentTimeMillis() - (2 * 24 * 60 * 60 * 1000)
+            ),
+            Triple(
+                "Canteen - Food Quality",
+                "The food quality needs improvement. More variety would be appreciated.",
+                System.currentTimeMillis() - (5 * 24 * 60 * 60 * 1000)
+            ),
+            Triple(
+                "Hygiene - Washroom Cleanliness",
+                "Washrooms need more frequent cleaning.",
+                System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000)
+            )
+        )
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        if (previousFeedback.isEmpty()) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = AppLightGrey.copy(alpha = 0.5f),
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "No previous feedback found",
+                        color = AppLightGrey,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        } else {
+            itemsIndexed(previousFeedback) { index, (title, description, timestamp) ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White.copy(alpha = 0.05f)
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    border = androidx.compose.foundation.BorderStroke(
+                        width = 1.dp,
+                        color = AppPurple.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
                     ) {
-                        item {
-                            // Category selector
-                            Text(
-                                "Category:",
-                                color = AppPurple,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
+                        Text(
+                            text = title,
+                            color = AppPurple,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = description,
+                            color = AppLightGrey,
+                            fontSize = 14.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Timer,
+                                contentDescription = null,
+                                tint = AppLightGrey.copy(alpha = 0.6f),
+                                modifier = Modifier.size(12.dp)
                             )
-                        }
-
-                        item {
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    listOf("Library", "Canteen").forEach { category ->
-                                        FilterChip(
-                                            selected = selectedCategory == category,
-                                            onClick = { selectedCategory = category },
-                                            label = { Text(category, fontSize = 13.sp) },
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                    }
-                                }
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    listOf("Hygiene", "Other").forEach { category ->
-                                        FilterChip(
-                                            selected = selectedCategory == category,
-                                            onClick = { selectedCategory = category },
-                                            label = { Text(category, fontSize = 13.sp) },
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Show custom subject input only when "Other" is selected
-                        if (selectedCategory == "Other") {
-                            item {
-                                Column {
-                                    Text(
-                                        "Subject:",
-                                        color = AppPurple,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    OutlinedTextField(
-                                        value = customSubject,
-                                        onValueChange = { customSubject = it },
-                                        placeholder = {
-                                            Text(
-                                                "Enter complaint subject...",
-                                                color = AppLightGrey.copy(alpha = 0.6f)
-                                            )
-                                        },
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedTextColor = AppWhite,
-                                            unfocusedTextColor = AppWhite,
-                                            focusedBorderColor = AppPurple,
-                                            unfocusedBorderColor = AppPurple.copy(alpha = 0.5f),
-                                            cursorColor = AppPurple
-                                        ),
-                                        modifier = Modifier.fillMaxWidth(),
-                                        singleLine = true
-                                    )
-                                }
-                            }
-                        }
-
-                        item {
-                            // Feedback text
-                            Column {
-                                Text(
-                                    "Feedback:",
-                                    color = AppPurple,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                OutlinedTextField(
-                                    value = feedbackText,
-                                    onValueChange = { feedbackText = it },
-                                    placeholder = {
-                                        Text(
-                                            "Write your feedback...",
-                                            color = AppLightGrey.copy(alpha = 0.6f)
-                                        )
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedTextColor = AppWhite,
-                                        unfocusedTextColor = AppWhite,
-                                        focusedBorderColor = AppPurple,
-                                        unfocusedBorderColor = AppPurple.copy(alpha = 0.5f),
-                                        cursorColor = AppPurple
-                                    ),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(150.dp),
-                                    maxLines = 6
-                                )
-                            }
-                        }
-
-                        item {
-                            // Submit button
-                            Button(
-                                onClick = {
-                                    if (feedbackText.isNotEmpty()) {
-                                        showSuccess = true
-                                        feedbackText = ""
-                                        customSubject = ""
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(50.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = AppPurple),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text(
-                                    "Submit Feedback",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        if (showSuccess) {
-                            item {
-                                Card(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = AppGreen.copy(alpha = 0.2f)
-                                    ),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(16.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text("✅", fontSize = 24.sp)
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Text(
-                                            "Feedback submitted successfully!",
-                                            color = AppGreen,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                }
-                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = formatCampusNoticeTime(timestamp),
+                                color = AppLightGrey.copy(alpha = 0.6f),
+                                fontSize = 11.sp,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                            )
                         }
                     }
                 }
@@ -908,7 +1192,13 @@ fun CrowdIndicator(facilityName: String, crowdPercent: Int) {
 }
 
 @Composable
-fun AnnouncementCard(title: String, description: String, colorTag: String, index: Int) {
+fun CampusAnnouncementCard(
+    title: String,
+    description: String,
+    colorTag: String,
+    uploadTimestamp: Long,
+    index: Int
+) {
     var visible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -937,6 +1227,22 @@ fun AnnouncementCard(title: String, description: String, colorTag: String, index
                     Text(title, color = AppPurple, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(description, color = AppLightGrey, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Timer,
+                            contentDescription = null,
+                            tint = AppLightGrey.copy(alpha = 0.7f),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            formatCampusNoticeTime(uploadTimestamp),
+                            color = AppLightGrey.copy(alpha = 0.7f),
+                            fontSize = 11.sp,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                        )
+                    }
                 }
             }
         }

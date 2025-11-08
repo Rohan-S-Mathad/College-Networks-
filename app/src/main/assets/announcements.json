@@ -2,31 +2,37 @@
   {
     "title": "Hackathon XYZ registrations open!",
     "category": "HACKATHON",
+    "uploadTimestamp": 1735660800000,
     "hoursAgo": 2
   },
   {
     "title": "Dance Club Auditions this Friday!",
     "category": "CLUB_EVENT",
+    "uploadTimestamp": 1735650000000,
     "hoursAgo": 5
   },
   {
     "title": "Exam form submission ends tomorrow.",
     "category": "ACADEMIC",
+    "uploadTimestamp": 1735617600000,
     "hoursAgo": 12
   },
   {
     "title": "AI Workshop this weekend - Register now!",
     "category": "HACKATHON",
+    "uploadTimestamp": 1735574400000,
     "hoursAgo": 24
   },
   {
     "title": "Basketball tournament next week",
     "category": "CLUB_EVENT",
+    "uploadTimestamp": 1735401600000,
     "hoursAgo": 48
   },
   {
     "title": "Mid-term results will be announced on Friday",
     "category": "ACADEMIC",
+    "uploadTimestamp": 1735228800000,
     "hoursAgo": 72
   }
 ]

@@ -57,6 +57,8 @@ private data class StudentParticle(
 fun StudentMainPage(
     onAnnouncementsClick: () -> Unit = {},
     onCampusClick: () -> Unit = {},
+    onCalendarClick: () -> Unit = {},
+    onPersonalInfoClick: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -66,8 +68,8 @@ fun StudentMainPage(
     var showAI by remember { mutableStateOf(false) }
     var showInput by remember { mutableStateOf(false) }
     var showButtons by remember { mutableStateOf(false) }
-    var showProfileDialog by remember { mutableStateOf(false) }
     var showCampusScreen by remember { mutableStateOf(false) }
+    var showCalendarScreen by remember { mutableStateOf(false) }
 
     // Get current email profile
     val emailProfile = remember { UserRepository.getCurrentEmailProfile(context) }
@@ -109,9 +111,21 @@ fun StudentMainPage(
         showButtons = true
     }
 
+    // Reset animations when returning from Campus or Calendar screens
+    LaunchedEffect(showCampusScreen, showCalendarScreen) {
+        if (!showCampusScreen && !showCalendarScreen) {
+            // Small delay then show buttons again
+            showButtons = false
+            delay(50)
+            showButtons = true
+        }
+    }
+
     // Show Campus Screen if requested
     if (showCampusScreen) {
         CampusScreen(onBack = { showCampusScreen = false })
+    } else if (showCalendarScreen) {
+        AcademicCalendarScreen(onBack = { showCalendarScreen = false })
     } else {
         Box(
             modifier = Modifier.fillMaxSize()
@@ -139,7 +153,7 @@ fun StudentMainPage(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f))
+                    .background(Color.Black.copy(alpha = 0.8f))
             )
 
             // Animated gradient waves
@@ -152,144 +166,178 @@ fun StudentMainPage(
                 visible = showContent,
                 enter = fadeIn(tween(200))
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    // Student Info Header
+                Box(modifier = Modifier.fillMaxSize()) {
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Name with avatar - Clickable to open profile
-                        AnimatedVisibility(
-                            visible = showName,
-                            enter = fadeIn(tween(200))
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        // Student Info Header
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier
+                            // Name with avatar - Clickable to open profile
+                            AnimatedVisibility(
+                                visible = showName,
+                                enter = fadeIn(tween(200))
                             ) {
-                                // Avatar
-                                Box(
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
                                     modifier = Modifier
-                                        .size(40.dp)
-                                        .border(
-                                            width = 2.dp,
-                                            brush = Brush.sweepGradient(
-                                                colors = listOf(
-                                                    AppPurple,
-                                                    AppPurpleSecondary,
-                                                    AppPurple
-                                                )
-                                            ),
-                                            shape = CircleShape
-                                        )
-                                        .background(AppPurple.copy(alpha = 0.3f), CircleShape)
-                                        .clickable { showProfileDialog = true },
-                                    contentAlignment = Alignment.Center
                                 ) {
+                                    // Avatar
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .border(
+                                                width = 2.dp,
+                                                brush = Brush.sweepGradient(
+                                                    colors = listOf(
+                                                        AppPurple,
+                                                        AppPurpleSecondary,
+                                                        AppPurple
+                                                    )
+                                                ),
+                                                shape = CircleShape
+                                            )
+                                            .background(AppPurple.copy(alpha = 0.3f), CircleShape)
+                                            .clickable { onPersonalInfoClick() },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = emailProfile?.name?.firstOrNull()?.toString()
+                                                ?: "S",
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = AppWhite
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(12.dp))
+
+                                    // Name
                                     Text(
-                                        text = emailProfile?.name?.firstOrNull()?.toString() ?: "S",
-                                        fontSize = 18.sp,
+                                        text = emailProfile?.name ?: "Student",
+                                        fontSize = 32.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = AppWhite
+                                        color = AppPurple,
+                                        textAlign = TextAlign.Center
                                     )
                                 }
+                            }
 
-                                Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
 
-                                // Name
+                            // Roll number + branch with slide-in
+                            AnimatedVisibility(
+                                visible = showRollNumber,
+                                enter = fadeIn(tween(200)) + slideInVertically(
+                                    initialOffsetY = { 50 },
+                                    animationSpec = tween(200)
+                                )
+                            ) {
                                 Text(
-                                    text = emailProfile?.name ?: "Student",
-                                    fontSize = 32.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = AppPurple,
+                                    text = "${emailProfile?.rollNumber ?: "1RV23AI001"} | ${emailProfile?.department ?: "AI & ML Department"}",
+                                    fontSize = 14.sp,
+                                    color = AppLightGrey,
                                     textAlign = TextAlign.Center
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(48.dp))
 
-                        // Roll number + branch with slide-in
+                        // AI Assistant Section
                         AnimatedVisibility(
-                            visible = showRollNumber,
-                            enter = fadeIn(tween(200)) + slideInVertically(
-                                initialOffsetY = { 50 },
+                            visible = showAI,
+                            enter = fadeIn(tween(200)) + scaleIn(
+                                initialScale = 0.8f,
                                 animationSpec = tween(200)
                             )
                         ) {
-                            Text(
-                                text = "${emailProfile?.rollNumber ?: "1RV23AI001"} | ${emailProfile?.department ?: "AI & ML Department"}",
-                                fontSize = 14.sp,
-                                color = AppLightGrey,
-                                textAlign = TextAlign.Center
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                AIAssistantCircle()
+
+                                Spacer(modifier = Modifier.height(24.dp))
+                            }
+                        }
+
+                        // AI Input Field
+                        AnimatedVisibility(
+                            visible = showInput,
+                            enter = fadeIn(tween(200)) + expandVertically()
+                        ) {
+                            AIInputField()
+                        }
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        // Feature Grid (4 buttons)
+                        AnimatedVisibility(
+                            visible = showButtons,
+                            enter = fadeIn(tween(200))
+                        ) {
+                            FeatureGrid(
+                                onAnnouncementsClick = onAnnouncementsClick,
+                                onCampusClick = { showCampusScreen = true },
+                                onCalendarClick = { showCalendarScreen = true },
+                                onPersonalInfoClick = onPersonalInfoClick
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+
+                    // Logout button in top-right corner
+                    AnimatedVisibility(
+                        visible = showContent,
+                        enter = fadeIn(tween(300)) + scaleIn(
+                            initialScale = 0.5f,
+                            animationSpec = tween(300)
+                        ),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                    ) {
+                        IconButton(
+                            onClick = {
+                                UserRepository.signOut(context)
+                                onLogout()
+                            },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(
+                                    brush = Brush.radialGradient(
+                                        colors = listOf(
+                                            AppPurple.copy(alpha = 0.3f),
+                                            Color.Transparent
+                                        )
+                                    ),
+                                    shape = CircleShape
+                                )
+                                .border(
+                                    width = 2.dp,
+                                    color = AppPurple.copy(alpha = 0.6f),
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ExitToApp,
+                                contentDescription = "Logout",
+                                tint = AppPurple,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(48.dp))
-
-                    // AI Assistant Section
-                    AnimatedVisibility(
-                        visible = showAI,
-                        enter = fadeIn(tween(200)) + scaleIn(
-                            initialScale = 0.8f,
-                            animationSpec = tween(200)
-                        )
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            AIAssistantCircle()
-
-                            Spacer(modifier = Modifier.height(24.dp))
-                        }
-                    }
-
-                    // AI Input Field
-                    AnimatedVisibility(
-                        visible = showInput,
-                        enter = fadeIn(tween(200)) + expandVertically()
-                    ) {
-                        AIInputField()
-                    }
-
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    // Feature Grid (4 buttons)
-                    AnimatedVisibility(
-                        visible = showButtons,
-                        enter = fadeIn(tween(200))
-                    ) {
-                        FeatureGrid(
-                            onAnnouncementsClick = onAnnouncementsClick,
-                            onCampusClick = { showCampusScreen = true }
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
                 }
-            }
-
-            // Profile Dialog
-            if (showProfileDialog) {
-                StudentProfileDialog(
-                    emailProfile = emailProfile,
-                    onDismiss = { showProfileDialog = false },
-                    onLogout = {
-                        // Sign out and navigate back
-                        UserRepository.signOut(context)
-                        onLogout()
-                    }
-                )
             }
         }
     }
@@ -865,13 +913,15 @@ fun processAIQuery(query: String): String {
 @Composable
 fun FeatureGrid(
     onAnnouncementsClick: () -> Unit,
-    onCampusClick: () -> Unit
+    onCampusClick: () -> Unit,
+    onCalendarClick: () -> Unit,
+    onPersonalInfoClick: () -> Unit
 ) {
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
     ) {
         val buttonWidth = maxWidth / 2.2f // Divide by 2.2 to account for spacing
-        val buttonHeight = maxHeight / 2.2f
+        val buttonHeight = maxHeight / 3.2f
 
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -926,6 +976,31 @@ fun FeatureGrid(
                     delayMs = 300
                 )
             }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                FeatureButton(
+                    icon = Icons.Default.Event,
+                    label = "Calendar",
+                    isActive = true,
+                    onClick = onCalendarClick,
+                    buttonWidth = buttonWidth,
+                    buttonHeight = buttonHeight,
+                    delayMs = 400
+                )
+
+                FeatureButton(
+                    icon = Icons.Default.Person,
+                    label = "Personal Info",
+                    isActive = true,
+                    onClick = onPersonalInfoClick,
+                    buttonWidth = buttonWidth,
+                    buttonHeight = buttonHeight,
+                    delayMs = 500
+                )
+            }
         }
     }
 }
@@ -940,14 +1015,8 @@ fun FeatureButton(
     buttonHeight: androidx.compose.ui.unit.Dp,
     delayMs: Int = 0
 ) {
-    var isVisible by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-
-    LaunchedEffect(Unit) {
-        delay(delayMs.toLong())
-        isVisible = true
-    }
 
     // Floating animation
     val infiniteTransition = rememberInfiniteTransition(label = "float_$label")
@@ -982,117 +1051,73 @@ fun FeatureButton(
         label = "button_scale"
     )
 
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(tween(200)) + scaleIn(initialScale = 0.8f, animationSpec = tween(200))
+    Box(
+        modifier = Modifier
+            .width(buttonWidth)
+            .height(buttonHeight)
+            .offset(y = floatOffset.dp)
     ) {
+        // Main button 
         Box(
             modifier = Modifier
-                .width(buttonWidth)
-                .height(buttonHeight)
-                .offset(y = floatOffset.dp)
-        ) {
-            // Glowing shadow layer
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .scale(scale * 1.05f)
-                    .background(
-                        brush = Brush.radialGradient(
+                .fillMaxSize()
+                .scale(scale)
+                .border(
+                    width = 1.5.dp,
+                    brush = if (isActive) {
+                        Brush.linearGradient(
                             colors = listOf(
-                                if (isActive) AppPurple.copy(alpha = glowAlpha * 0.5f) else Color.Transparent,
-                                Color.Transparent
+                                AppPurple.copy(alpha = glowAlpha),
+                                AppPurpleSecondary.copy(alpha = glowAlpha * 0.8f)
                             )
-                        ),
-                        shape = RoundedCornerShape(24.dp)
-                    )
-            )
-
-            // Main button
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .scale(scale)
-                    .border(
-                        width = 1.5.dp,
-                        brush = if (isActive) {
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    AppPurple.copy(alpha = glowAlpha),
-                                    AppPurpleSecondary.copy(alpha = glowAlpha * 0.8f)
-                                )
+                        )
+                    } else {
+                        Brush.linearGradient(
+                            listOf(
+                                AppLightGrey.copy(alpha = 0.3f),
+                                AppLightGrey.copy(alpha = 0.3f)
                             )
-                        } else {
-                            Brush.linearGradient(
-                                listOf(
-                                    AppLightGrey.copy(alpha = 0.3f),
-                                    AppLightGrey.copy(alpha = 0.3f)
-                                )
-                            )
-                        },
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                    .background(
-                        color = Color.White.copy(alpha = if (isActive) 0.08f else 0.03f),
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        enabled = isActive,
-                        onClick = onClick
-                    )
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
+                        )
+                    },
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .background(
+                    color = Color.White.copy(alpha = if (isActive) 0.08f else 0.03f),
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = isActive,
+                    onClick = onClick
+                )
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    // Icon with glow effect
-                    Box(contentAlignment = Alignment.Center) {
-                        if (isActive) {
-                            // Icon glow layer
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = label,
-                                tint = AppPurple.copy(alpha = glowAlpha * 0.4f),
-                                modifier = Modifier.size(52.dp)
-                            )
-                        }
-                        // Main icon
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = label,
-                            tint = if (isActive) AppPurple else AppLightGrey.copy(alpha = 0.5f),
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
+                // Icon without glow effect - single layer for better visibility
+                Icon(
+                    imageVector = icon,
+                    contentDescription = label,
+                    tint = if (isActive) AppPurple else AppLightGrey.copy(alpha = 0.5f),
+                    modifier = Modifier.size(56.dp)
+                )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                    // Label
-                    Text(
-                        text = label,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isActive) AppPurple else AppLightGrey.copy(alpha = 0.5f),
-                        textAlign = TextAlign.Center,
-                        maxLines = 1
-                    )
-
-                    // Coming soon badge
-                    if (!isActive) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Coming soon",
-                            fontSize = 11.sp,
-                            color = AppLightGrey.copy(alpha = 0.4f),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
+                // Label with better visibility
+                Text(
+                    text = label,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isActive) AppPurple else AppLightGrey.copy(alpha = 0.6f),
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
             }
         }
     }

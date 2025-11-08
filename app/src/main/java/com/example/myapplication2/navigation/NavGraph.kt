@@ -65,6 +65,9 @@ fun NavGraph(
                     },
                     onLoginClick = {
                         navController.navigate(NavRoutes.EmailAuth.route)
+                    },
+                    onAboutUsClick = {
+                        navController.navigate(NavRoutes.AboutUs.route)
                     }
                 )
             }
@@ -174,6 +177,12 @@ fun NavGraph(
                     onCampusClick = {
                         navController.navigate(NavRoutes.CampusSection.route)
                     },
+                    onCalendarClick = {
+                        navController.navigate(NavRoutes.AcademicCalendar.route)
+                    },
+                    onPersonalInfoClick = {
+                        navController.navigate(NavRoutes.PersonalInfo.route)
+                    },
                     onLogout = {
                         navController.navigate(NavRoutes.LoginSelection.route) {
                             popUpTo(0) { inclusive = true }
@@ -222,6 +231,75 @@ fun NavGraph(
                 }
             ) {
                 CampusScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // Academic Calendar Screen Route
+            composable(
+                route = NavRoutes.AcademicCalendar.route,
+                enterTransition = {
+                    slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = tween(400)
+                    ) + fadeIn(tween(400))
+                },
+                exitTransition = {
+                    slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = tween(400)
+                    ) + fadeOut(tween(400))
+                }
+            ) {
+                AcademicCalendarScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // Personal Info Screen Route
+            composable(
+                route = NavRoutes.PersonalInfo.route,
+                enterTransition = {
+                    slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = tween(400)
+                    ) + fadeIn(tween(400))
+                },
+                exitTransition = {
+                    slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = tween(400)
+                    ) + fadeOut(tween(400))
+                }
+            ) {
+                PersonalInfoScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // About Us Route
+            composable(
+                route = NavRoutes.AboutUs.route,
+                enterTransition = {
+                    slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = tween(400)
+                    ) + fadeIn(tween(400))
+                },
+                exitTransition = {
+                    slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = tween(400)
+                    ) + fadeOut(tween(400))
+                }
+            ) {
+                AboutUsScreen(
                     onBack = {
                         navController.popBackStack()
                     }

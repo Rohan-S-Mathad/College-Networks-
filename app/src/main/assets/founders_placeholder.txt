@@ -1,0 +1,25 @@
+FOUNDERS IMAGE PLACEHOLDER
+==========================
+
+To add your founders image (Rohan & Tarun's photo), please follow these steps:
+
+1. Prepare your image:
+   - Recommended size: 1200x800 pixels or larger
+   - Recommended format: PNG or JPG
+   - Image should show both founders clearly
+
+2. Rename your image to one of these names:
+   - founders.png (recommended)
+   - founders.jpg
+   - founders.jpeg
+   - about_us.png
+   - about_us.jpg
+
+3. Place the image in this folder:
+   app/src/main/assets/
+
+4. The app will automatically detect and display your image!
+
+If no image is found, the app will show a placeholder with initials "R" and "T" and the text "Rohan & Tarun - Founders, Campus Network"
+
+Current location: app/src/main/assets/

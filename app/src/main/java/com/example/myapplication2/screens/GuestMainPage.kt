@@ -56,19 +56,36 @@ import java.util.Locale
 private data class GuestAnnouncement(
     val title: String,
     val category: AnnouncementCategory,
-    val hoursAgo: Int = 0
+    val uploadTimestamp: Long = System.currentTimeMillis()
 )
 
 private data class AnnouncementJson(
     val title: String,
     val category: String,
-    val hoursAgo: Int
+    val uploadTimestamp: Long,
+    val hoursAgo: Int // Keep for backwards compatibility
 )
 
 private enum class AnnouncementCategory(val color: Color, val label: String) {
     HACKATHON(CategoryPurple, "Hackathon Alert"),
     CLUB_EVENT(CategoryGreen, "Club Event"),
     ACADEMIC(CategoryRed, "Important Academic")
+}
+
+// Helper function to format time ago from timestamp
+fun formatGuestTimeAgo(uploadTimestamp: Long): String {
+    val currentTime = System.currentTimeMillis()
+    val diffInMillis = currentTime - uploadTimestamp
+    val hoursAgo = (diffInMillis / (1000 * 60 * 60)).toInt()
+
+    return when {
+        hoursAgo < 1 -> "Just now"
+        hoursAgo < 24 -> "$hoursAgo hour${if (hoursAgo > 1) "s" else ""} ago"
+        else -> {
+            val days = hoursAgo / 24
+            "$days day${if (days > 1) "s" else ""} ago"
+        }
+    }
 }
 
 data class CalendarEvent(
@@ -90,23 +107,6 @@ enum class EventCategory(val color: Color, val label: String) {
     ACADEMIC(CategoryRed, "Academic Notice")
 }
 
-// Helper function to format time ago
-fun formatTimeAgo(hoursAgo: Int): String {
-    return when {
-        hoursAgo < 1 -> "Just now"
-        hoursAgo < 24 -> "$hoursAgo hour${if (hoursAgo > 1) "s" else ""} ago"
-        hoursAgo < 168 -> {
-            val days = hoursAgo / 24
-            "$days day${if (days > 1) "s" else ""} ago"
-        }
-
-        else -> {
-            val weeks = hoursAgo / 168
-            "$weeks week${if (weeks > 1) "s" else ""} ago"
-        }
-    }
-}
-
 // Helper function to load announcements from assets
 private fun loadAnnouncementsFromAssets(context: android.content.Context): List<GuestAnnouncement> {
     return try {
@@ -115,10 +115,14 @@ private fun loadAnnouncementsFromAssets(context: android.content.Context): List<
         val listType = object : TypeToken<List<AnnouncementJson>>() {}.type
         val announcementJsonList: List<AnnouncementJson> = gson.fromJson(json, listType)
         announcementJsonList.map { json ->
+            // Calculate timestamp relative to current time using hoursAgo
+            val currentTime = System.currentTimeMillis()
+            val calculatedTimestamp = currentTime - (json.hoursAgo * 60 * 60 * 1000)
+
             GuestAnnouncement(
                 title = json.title,
                 category = AnnouncementCategory.valueOf(json.category),
-                hoursAgo = json.hoursAgo
+                uploadTimestamp = calculatedTimestamp
             )
         }
     } catch (e: Exception) {
@@ -128,17 +132,17 @@ private fun loadAnnouncementsFromAssets(context: android.content.Context): List<
             GuestAnnouncement(
                 "Hackathon XYZ registrations open!",
                 AnnouncementCategory.HACKATHON,
-                2
+                System.currentTimeMillis() - (2 * 60 * 60 * 1000)
             ),
             GuestAnnouncement(
                 "Dance Club Auditions this Friday!",
                 AnnouncementCategory.CLUB_EVENT,
-                5
+                System.currentTimeMillis() - (5 * 60 * 60 * 1000)
             ),
             GuestAnnouncement(
                 "Exam form submission ends tomorrow.",
                 AnnouncementCategory.ACADEMIC,
-                12
+                System.currentTimeMillis() - (12 * 60 * 60 * 1000)
             )
         )
     }
@@ -257,7 +261,11 @@ fun GuestMainPage(onLogout: () -> Unit = {}) {
                 // Header with user name
                 ProfileHeader(
                     userProfile = userProfile,
-                    onProfileClick = { showProfileDialog = true }
+                    onProfileClick = { showProfileDialog = true },
+                    onLogoutClick = {
+                        UserRepository.signOut(context)
+                        onLogout()
+                    }
                 )
 
                 // Main content area
@@ -338,7 +346,8 @@ fun GuestMainPage(onLogout: () -> Unit = {}) {
 @Composable
 fun ProfileHeader(
     userProfile: UserProfile?,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -370,8 +379,37 @@ fun ProfileHeader(
             text = "Hi, ${userProfile?.name?.split(" ")?.firstOrNull() ?: "Guest"}!",
             color = AppPurple,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f)
         )
+
+        // Logout button
+        IconButton(
+            onClick = onLogoutClick,
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            AppPurple.copy(alpha = 0.3f),
+                            Color.Transparent
+                        )
+                    ),
+                    shape = CircleShape
+                )
+                .border(
+                    width = 2.dp,
+                    color = AppPurple.copy(alpha = 0.6f),
+                    shape = CircleShape
+                )
+        ) {
+            Icon(
+                imageVector = Icons.Default.ExitToApp,
+                contentDescription = "Logout",
+                tint = AppPurple,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
@@ -765,7 +803,7 @@ private fun AnnouncementCard(announcement: GuestAnnouncement) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = formatTimeAgo(announcement.hoursAgo),
+                        text = formatGuestTimeAgo(announcement.uploadTimestamp),
                         color = AppLightGrey.copy(alpha = 0.7f),
                         fontSize = 9.sp
                     )

@@ -48,8 +48,50 @@ data class Announcement(
     val sentBy: String,
     val category: CampusAnnouncementCategory,
     val imageUrl: String? = null,
-    val description: String
+    val description: String,
+    val uploadTimestamp: Long = System.currentTimeMillis() // Unix timestamp in milliseconds
 )
+
+// Helper function to calculate hours since upload
+fun calculateHoursAgo(uploadTimestamp: Long): Int {
+    val currentTime = System.currentTimeMillis()
+    val diffInMillis = currentTime - uploadTimestamp
+    return (diffInMillis / (1000 * 60 * 60)).toInt() // Convert to hours
+}
+
+// Helper function to format relative time
+fun formatRelativeTime(uploadTimestamp: Long): String {
+    val hoursAgo = calculateHoursAgo(uploadTimestamp)
+    return when {
+        hoursAgo < 1 -> "Just now"
+        hoursAgo < 24 -> "$hoursAgo ${if (hoursAgo == 1) "hour" else "hours"} ago"
+        else -> {
+            val days = hoursAgo / 24
+            "$days ${if (days == 1) "day" else "days"} ago"
+        }
+    }
+}
+
+// Composable to show real-time updating timestamp
+@Composable
+fun DynamicTimestamp(uploadTimestamp: Long) {
+    var currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
+
+    // Update every minute to keep timestamp fresh
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60000) // 60 seconds
+            currentTime = System.currentTimeMillis()
+        }
+    }
+
+    Text(
+        text = formatRelativeTime(uploadTimestamp),
+        fontSize = 12.sp,
+        color = AppLightGrey.copy(alpha = 0.8f)
+    )
+}
+
 enum class CampusAnnouncementCategory(val displayName: String, val color: Color) {
     CLUB("Club", Color(0xFF00FF7F)),
     HACKATHON("Hackathon", Color(0xFFA020F0)),
@@ -449,22 +491,18 @@ fun AnnouncementCard(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    // Date
+                    // Time
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CalendarToday,
+                            imageVector = Icons.Default.Timer,
                             contentDescription = null,
                             tint = AppLightGrey,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Uploaded: ${announcement.dateUploaded}",
-                            fontSize = 12.sp,
-                            color = AppLightGrey.copy(alpha = 0.8f)
-                        )
+                        DynamicTimestamp(uploadTimestamp = announcement.uploadTimestamp)
                     }
                 }
 
@@ -572,16 +610,11 @@ fun AnnouncementDetailModal(
 
                             Column {
                                 Text(
-                                    "Date:",
+                                    "Time:",
                                     fontSize = 12.sp,
                                     color = AppLightGrey.copy(alpha = 0.7f)
                                 )
-                                Text(
-                                    announcement.dateUploaded,
-                                    fontSize = 14.sp,
-                                    color = AppWhite,
-                                    fontWeight = FontWeight.Medium
-                                )
+                                DynamicTimestamp(uploadTimestamp = announcement.uploadTimestamp)
                             }
                         }
                     }
@@ -655,42 +688,48 @@ fun getSampleAnnouncements(): List<Announcement> {
             dateUploaded = "08 Nov 2025",
             sentBy = "Tech Club",
             category = CampusAnnouncementCategory.HACKATHON,
-            description = "Join us for the biggest AI hackathon of the year! Register now to compete with teams from across the country. Prizes worth ₹5 lakhs to be won. Limited slots available."
+            description = "Join us for the biggest AI hackathon of the year! Register now to compete with teams from across the country. Prizes worth ₹5 lakhs to be won. Limited slots available.",
+            uploadTimestamp = System.currentTimeMillis() - 7200000 // 2 hours ago
         ),
         Announcement(
             heading = "Exam Form Submission Deadline",
             dateUploaded = "07 Nov 2025",
             sentBy = "Examination Department",
             category = CampusAnnouncementCategory.ACADEMIC,
-            description = "All students are required to submit their exam forms before 15th November. Late submissions will not be accepted. Visit the examination office during office hours (9 AM - 5 PM)."
+            description = "All students are required to submit their exam forms before 15th November. Late submissions will not be accepted. Visit the examination office during office hours (9 AM - 5 PM).",
+            uploadTimestamp = System.currentTimeMillis() - 43200000 // 12 hours ago
         ),
         Announcement(
             heading = "Cultural Club Auditions - Dance & Drama",
             dateUploaded = "06 Nov 2025",
             sentBy = "Cultural Club",
             category = CampusAnnouncementCategory.CLUB,
-            description = "Auditions for the annual cultural fest are now open! Show your talent in dance, drama, or music. Auditions will be held on 12th November at the main auditorium from 10 AM onwards."
+            description = "Auditions for the annual cultural fest are now open! Show your talent in dance, drama, or music. Auditions will be held on 12th November at the main auditorium from 10 AM onwards.",
+            uploadTimestamp = System.currentTimeMillis() - 86400000 // 24 hours ago
         ),
         Announcement(
             heading = "TechFest 2025 - Save the Date",
             dateUploaded = "05 Nov 2025",
             sentBy = "Event Committee",
             category = CampusAnnouncementCategory.FEST,
-            description = "Mark your calendars! TechFest 2025 will be held from 20-22 December. Exciting competitions, workshops, and celebrity guests. Registration opens next week. Stay tuned for more details!"
+            description = "Mark your calendars! TechFest 2025 will be held from 20-22 December. Exciting competitions, workshops, and celebrity guests. Registration opens next week. Stay tuned for more details!",
+            uploadTimestamp = System.currentTimeMillis() - 172800000 // 48 hours ago
         ),
         Announcement(
             heading = "Library Maintenance Schedule",
             dateUploaded = "04 Nov 2025",
             sentBy = "Library Department",
             category = CampusAnnouncementCategory.GENERAL,
-            description = "The library will be closed for annual maintenance from 10-12 November. All borrowed books should be returned by 9th November. E-library services will remain available during this period."
+            description = "The library will be closed for annual maintenance from 10-12 November. All borrowed books should be returned by 9th November. E-library services will remain available during this period.",
+            uploadTimestamp = System.currentTimeMillis() - 259200000 // 72 hours ago
         ),
         Announcement(
             heading = "Coding Bootcamp by Microsoft",
             dateUploaded = "03 Nov 2025",
             sentBy = "Placement Cell",
             category = CampusAnnouncementCategory.HACKATHON,
-            description = "Microsoft is conducting a free 3-day coding bootcamp for students. Topics include Azure, Cloud Computing, and AI. Register through the placement portal. Limited seats - first come, first served!"
+            description = "Microsoft is conducting a free 3-day coding bootcamp for students. Topics include Azure, Cloud Computing, and AI. Register through the placement portal. Limited seats - first come, first served!",
+            uploadTimestamp = System.currentTimeMillis() - 345600000 // 96 hours ago
         )
     )
 }
