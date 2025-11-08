@@ -118,10 +118,16 @@ with splash screen, phone verification, OTP validation, and a comprehensive gues
             - Tap events to see details in popup
       4. **Timetable** - Clock+Grid icon
            - Opens image viewer with timetable
-         - **Loads from `assets/tt.png` or `tt.jpg`** (also checks `timetable.png`/`timetable.jpg`)
+         - **Loads from `assets/tt.png` or `assets/tt.jpg`** (also checks `timetable.png`/
+           `timetable.jpg`)
+         - **Full-screen display** - Uses entire device screen
          - **Pinch-to-Zoom:** Zoom from 0.5x to 5x magnification
-         - **Drag-to-Pan:** Move around the zoomed image
+         - **Drag-to-Pan:** Move around the zoomed image with **accelerated panning** (2.5x speed
+           multiplier)
+         - **Compact floating header** with transparent background
          - **Reset Button:** Instantly return to original view
+         - **Close button:** Easy exit with X button
+         - **Black background** for optimal viewing
          - Automatic fallback to placeholder if no image found
          - Supports PNG and JPG formats
          - Image scaling for optimal viewing
@@ -304,6 +310,55 @@ app/src/main/assets/
 3. Recommended: 1080x1920 or higher resolution
 4. App will automatically load and display it
 5. **Supports pinch-to-zoom and drag-to-pan**
+
+## Customization Guide
+
+### Add Custom Images
+
+#### Replace App Icon (Launcher Icon)
+
+To use your app logo as the homescreen icon:
+
+**Using Android Studio (Easiest):**
+
+1. Right-click on `app` folder
+2. Select `New` → `Image Asset`
+3. Choose `Launcher Icons (Adaptive and Legacy)`
+4. Browse to your logo file
+5. Adjust padding if needed
+6. Click `Next` → `Finish`
+7. Uninstall old app and reinstall to see new icon
+
+**Required Sizes:**
+
+- mdpi: 48x48px
+- hdpi: 72x72px
+- xhdpi: 96x96px
+- xxhdpi: 144x144px
+- xxxhdpi: 192x192px
+
+**Location:**
+
+- Replace files in `app/src/main/res/mipmap-*/ic_launcher.png`
+- Also update `ic_launcher_round.png` for circular icon support
+
+#### Replace App Logo
+
+1. Add your logo to `app/src/main/assets/`
+2. Name it `applogo.png` or `applogo.jpg`
+3. **That's it!** App will automatically load it
+
+#### Replace Campus Network Logo
+
+1. Add your branding logo to `app/src/main/assets/`
+2. Name it `campusnetwork.png` or `campusnetwork.jpg`
+3. **That's it!** App will display it with floating animation
+
+#### Replace College Campus Image
+
+1. Add your campus photo to `app/src/main/assets/`
+2. Name it `collegeimage.png` or `collegeimage.jpg`
+3. **That's it!** App will blur it and use as background
 
 ## Technical Stack
 
@@ -497,13 +552,16 @@ User profiles are saved to local storage as JSON:
 - **Sample events populated from `assets/calendar_events.json`**
 - **Fully customizable via JSON file**
 
-### Timetable Viewer
+### Timetable Viewer ⭐ Enhanced
 
-- Full-screen modal display (90% of screen height)
-- **Loads from `assets/tt.png` or `tt.jpg`** (also checks `timetable.png`/`timetable.jpg`)
+- **Full-screen display** - Uses entire device screen
+- **Loads from `assets/tt.png` or `assets/tt.jpg`** (also supports `timetable.png`/`timetable.jpg`)
 - **Pinch-to-Zoom:** Zoom from 0.5x to 5x magnification
-- **Drag-to-Pan:** Move around the zoomed image
+- **Drag-to-Pan:** Move around the zoomed image with **accelerated panning** (2.5x speed multiplier)
+- **Compact floating header** with transparent background
 - **Reset Button:** Instantly return to original view
+- **Close button:** Easy exit with X button
+- **Black background** for optimal viewing
 - Automatic fallback to placeholder if no image found
 - Supports PNG and JPG formats
 - Image scaling for optimal viewing
@@ -562,9 +620,9 @@ User profiles are saved to local storage as JSON:
 - **User data loaded from `assets/users.json`** with fallback to hardcoded defaults
 - **Announcements loaded from `assets/announcements.json`** with fallback
 - **Calendar events loaded from `assets/calendar_events.json`** with fallback
-- **Timetable loaded from `assets/tt.png` or `tt.jpg`** (also checks `timetable.png`/
+- **Timetable loaded from `assets/tt.png` or `assets/tt.jpg`** (also checks `timetable.png`/
   `timetable.jpg`) with fallback
-- **Timetable supports full pinch-to-zoom (0.5x-5x) and drag-to-pan**
+- **Timetable supports full pinch-to-zoom (0.5x-5x) and drag-to-pan with accelerated panning**
 - **Profile dialog is fully scrollable**
 - **Session persists across app launches**
 - **Back button on Guest Main Page exits app (session preserved)**
@@ -579,28 +637,7 @@ User profiles are saved to local storage as JSON:
 - **All data files are JSON format and easily editable**
 - **All images load from assets folder with multiple fallback filenames**
 - **Changes to JSON files require app restart**
-
-## Customization Guide
-
-### Add Custom Images
-
-#### Replace App Logo
-
-1. Add your logo to `app/src/main/assets/`
-2. Name it `applogo.png` or `applogo.jpg`
-3. **That's it!** App will automatically load it
-
-#### Replace Campus Network Logo
-
-1. Add your branding logo to `app/src/main/assets/`
-2. Name it `campusnetwork.png` or `campusnetwork.jpg`
-3. **That's it!** App will display it with floating animation
-
-#### Replace College Campus Image
-
-1. Add your campus photo to `app/src/main/assets/`
-2. Name it `collegeimage.png` or `collegeimage.jpg`
-3. **That's it!** App will blur it and use as background
+- **Timetable panning is 2.5x faster for better navigation when zoomed**
 
 ## License
 

@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.myapplication2.R
 import com.example.myapplication2.data.UserProfile
 import com.example.myapplication2.data.UserRepository
@@ -1061,30 +1062,37 @@ fun TimetableDialog(onDismiss: () -> Unit) {
     val state = rememberTransformableState { zoomChange, panChange, _ ->
         scale = (scale * zoomChange).coerceIn(0.5f, 5f)
 
+        // Accelerated panning - multiply by 2.5 for faster movement
+        val panSpeedMultiplier = 2.5f
         val maxX = (scale - 1) * 1000f
         val maxY = (scale - 1) * 1000f
 
-        offsetX = (offsetX + panChange.x).coerceIn(-maxX, maxX)
-        offsetY = (offsetY + panChange.y).coerceIn(-maxY, maxY)
+        offsetX = (offsetX + panChange.x * panSpeedMultiplier).coerceIn(-maxX, maxX)
+        offsetY = (offsetY + panChange.y * panSpeedMultiplier).coerceIn(-maxY, maxY)
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
+        )
+    ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.9f)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.Black.copy(alpha = 0.95f))
-                .border(2.dp, AppPurple, RoundedCornerShape(16.dp))
+                .fillMaxSize()
+                .background(Color.Black)
         ) {
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Header
+                // Header - Compact floating overlay
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .background(Color.Black.copy(alpha = 0.7f))
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -1092,13 +1100,13 @@ fun TimetableDialog(onDismiss: () -> Unit) {
                         Text(
                             text = "Timetable",
                             color = AppPurple,
-                            fontSize = 24.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "Pinch to zoom • Drag to pan",
                             color = AppLightGrey.copy(alpha = 0.6f),
-                            fontSize = 11.sp
+                            fontSize = 10.sp
                         )
                     }
 
@@ -1114,7 +1122,8 @@ fun TimetableDialog(onDismiss: () -> Unit) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
                                 contentDescription = "Reset Zoom",
-                                tint = AppPurple
+                                tint = AppPurple,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
 
@@ -1122,18 +1131,17 @@ fun TimetableDialog(onDismiss: () -> Unit) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Close",
-                                tint = AppPurple
+                                tint = AppPurple,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     }
                 }
 
-                // Timetable image with zoom support
+                // Timetable image with zoom support - Full screen
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
-                        .clip(RoundedCornerShape(8.dp))
                         .background(Color.Black),
                     contentAlignment = Alignment.Center
                 ) {
