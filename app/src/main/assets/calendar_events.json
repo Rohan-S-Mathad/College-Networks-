@@ -1,0 +1,37 @@
+[
+  {
+    "daysOffset": 5,
+    "title": "Tech Fest 2024",
+    "category": "FEST"
+  },
+  {
+    "daysOffset": 10,
+    "title": "Republic Day",
+    "category": "HOLIDAY"
+  },
+  {
+    "daysOffset": 15,
+    "title": "Mid-term Exams Begin",
+    "category": "EXAM"
+  },
+  {
+    "daysOffset": 20,
+    "title": "Dance Competition",
+    "category": "FEST"
+  },
+  {
+    "daysOffset": -2,
+    "title": "Sports Day",
+    "category": "FEST"
+  },
+  {
+    "daysOffset": 7,
+    "title": "Guest Lecture by Industry Expert",
+    "category": "FEST"
+  },
+  {
+    "daysOffset": 14,
+    "title": "Project Submission Deadline",
+    "category": "ACADEMIC"
+  }
+]

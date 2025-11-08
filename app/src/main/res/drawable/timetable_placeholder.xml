@@ -1,0 +1,42 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="800dp"
+    android:height="600dp"
+    android:viewportWidth="800"
+    android:viewportHeight="600">
+
+    <!-- Background -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M0,0h800v600h-800z" />
+
+    <!-- Title -->
+    <path
+        android:fillColor="#A020F0"
+        android:pathData="M50,30 L750,30 L750,80 L50,80 Z" />
+
+    <!-- Table grid -->
+    <!-- Horizontal lines -->
+    <path
+        android:strokeColor="#A020F0"
+        android:strokeWidth="2"
+        android:pathData="M50,100 L750,100 M50,180 L750,180 M50,260 L750,260 M50,340 L750,340 M50,420 L750,420 M50,500 L750,500 M50,580 L750,580" />
+
+    <!-- Vertical lines -->
+    <path
+        android:strokeColor="#A020F0"
+        android:strokeWidth="2"
+        android:pathData="M50,100 L50,580 M180,100 L180,580 M310,100 L310,580 M440,100 L440,580 M570,100 L570,580 M750,100 L750,580" />
+
+    <!-- Sample text blocks (simulating class names) -->
+    <path
+        android:fillColor="#C0C0C0"
+        android:pathData="M70,130 L150,130 L150,145 L70,145 Z" />
+
+    <path
+        android:fillColor="#C0C0C0"
+        android:pathData="M200,210 L280,210 L280,225 L200,225 Z" />
+
+    <path
+        android:fillColor="#C0C0C0"
+        android:pathData="M330,290 L410,290 L410,305 L330,305 Z" />
+</vector>

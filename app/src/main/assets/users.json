@@ -1,0 +1,28 @@
+[
+  {
+    "phoneNumber": "1234567890",
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "address": "123 Main Street, City, Country",
+    "branch": "Computer Science Engineering",
+    "college": "University of Los Angeles",
+    "classNumber": "CSE-2024-A",
+    "classTeacherName": "Dr. Sarah Johnson",
+    "teacherContact": "9988776655",
+    "fatherName": "Robert Doe",
+    "fatherContact": "9876543210"
+  },
+  {
+    "phoneNumber": "9876543210",
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com",
+    "address": "456 Oak Avenue, Town, Country",
+    "branch": "Electronics and Communication",
+    "college": "University of Los Angeles",
+    "classNumber": "ECE-2024-B",
+    "classTeacherName": "Prof. Michael Chen",
+    "teacherContact": "9988112233",
+    "fatherName": "William Smith",
+    "fatherContact": "9123456789"
+  }
+]

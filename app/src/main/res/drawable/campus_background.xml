@@ -1,0 +1,33 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="1080dp"
+    android:height="1920dp"
+    android:viewportWidth="1080"
+    android:viewportHeight="1920">
+
+    <!-- Gradient background simulating blurred campus -->
+    <path
+        android:fillColor="#1A1A2E"
+        android:pathData="M0,0h1080v1920h-1080z" />
+
+    <!-- Simulated building shapes (blurred) -->
+    <path
+        android:fillColor="#2A2A4E"
+        android:pathData="M100,800 L300,600 L500,800 L500,1500 L100,1500 Z"
+        android:fillAlpha="0.3" />
+
+    <path
+        android:fillColor="#3A3A5E"
+        android:pathData="M600,700 L800,500 L1000,700 L1000,1500 L600,1500 Z"
+        android:fillAlpha="0.3" />
+
+    <!-- Simulated trees/greenery -->
+    <path
+        android:fillColor="#1E4D2B"
+        android:pathData="M200,1300 Q300,1100 400,1300 L400,1500 L200,1500 Z"
+        android:fillAlpha="0.2" />
+
+    <path
+        android:fillColor="#1E4D2B"
+        android:pathData="M700,1200 Q800,1000 900,1200 L900,1500 L700,1500 Z"
+        android:fillAlpha="0.2" />
+</vector>

@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Hackathon XYZ registrations open!",
+    "category": "HACKATHON",
+    "hoursAgo": 2
+  },
+  {
+    "title": "Dance Club Auditions this Friday!",
+    "category": "CLUB_EVENT",
+    "hoursAgo": 5
+  },
+  {
+    "title": "Exam form submission ends tomorrow.",
+    "category": "ACADEMIC",
+    "hoursAgo": 12
+  },
+  {
+    "title": "AI Workshop this weekend - Register now!",
+    "category": "HACKATHON",
+    "hoursAgo": 24
+  },
+  {
+    "title": "Basketball tournament next week",
+    "category": "CLUB_EVENT",
+    "hoursAgo": 48
+  },
+  {
+    "title": "Mid-term results will be announced on Friday",
+    "category": "ACADEMIC",
+    "hoursAgo": 72
+  }
+]
