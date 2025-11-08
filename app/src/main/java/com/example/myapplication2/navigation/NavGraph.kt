@@ -1,5 +1,6 @@
 package com.example.myapplication2.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
@@ -10,15 +11,19 @@ import com.example.myapplication2.screens.*
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun NavGraph(
+    navController: NavHostController,
+    startDestination: String = NavRoutes.Splash.route,
+    onExitApp: () -> Unit = {}
+) {
     NavHost(
         navController = navController,
-        startDestination = NavRoutes.Splash.route
+        startDestination = startDestination
     ) {
         composable(
             route = NavRoutes.Splash.route,
             exitTransition = {
-                fadeOut(animationSpec = tween(500))
+                fadeOut(animationSpec = tween(300))
             }
         ) {
             SplashScreen(
@@ -33,10 +38,13 @@ fun NavGraph(navController: NavHostController) {
         composable(
             route = NavRoutes.LoginSelection.route,
             enterTransition = {
-                fadeIn(animationSpec = tween(500))
+                fadeIn(animationSpec = tween(300))
             },
             exitTransition = {
-                fadeOut(animationSpec = tween(500))
+                fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                fadeIn(animationSpec = tween(300))
             }
         ) {
             LoginSelectionScreen(
@@ -49,16 +57,21 @@ fun NavGraph(navController: NavHostController) {
         composable(
             route = NavRoutes.GuestAuth.route,
             enterTransition = {
-                fadeIn(animationSpec = tween(500))
+                fadeIn(animationSpec = tween(300))
             },
             exitTransition = {
-                fadeOut(animationSpec = tween(500))
+                fadeOut(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(300))
             }
         ) {
             GuestAuthScreen(
                 onAuthSuccess = {
                     navController.navigate(NavRoutes.GuestMainPage.route) {
-                        popUpTo(NavRoutes.LoginSelection.route) { inclusive = true }
+                        popUpTo(NavRoutes.LoginSelection.route) {
+                        inclusive = false
+                        }
                     }
                 },
                 onBackToSelection = {
@@ -70,9 +83,17 @@ fun NavGraph(navController: NavHostController) {
         composable(
             route = NavRoutes.GuestMainPage.route,
             enterTransition = {
-                fadeIn(animationSpec = tween(1000))
+                fadeIn(animationSpec = tween(500))
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(300))
             }
         ) {
+            // Handle back button press to exit app
+            BackHandler {
+                onExitApp()
+            }
+
             GuestMainPage()
         }
     }

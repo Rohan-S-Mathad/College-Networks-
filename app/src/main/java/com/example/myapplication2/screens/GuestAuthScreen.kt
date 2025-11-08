@@ -49,12 +49,6 @@ fun GuestAuthScreen(
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
-    // Animation for login button fade out
-    var showLoginButton by remember { mutableStateOf(true) }
-
-    // Animation for guest text moving to top
-    var guestAtTop by remember { mutableStateOf(false) }
-
     LaunchedEffect(authState) {
         if (authState == AuthState.SUCCESS) {
             delay(1500)
@@ -97,45 +91,39 @@ fun GuestAuthScreen(
                     Spacer(modifier = Modifier.height(60.dp))
 
                     // Phone number input
-                    AnimatedVisibility(
-                        visible = authState == AuthState.PHONE_INPUT || authState == AuthState.OTP_INPUT,
-                        enter = fadeIn(animationSpec = tween(1000)),
-                        exit = fadeOut(animationSpec = tween(500))
-                    ) {
-                        OutlinedTextField(
-                            value = phoneNumber,
-                            onValueChange = {
-                                if (it.length <= 10) {
-                                    phoneNumber = it
-                                    showError = false
-                                }
-                            },
-                            label = {
-                                Text(
-                                    "Phone Number",
-                                    color = AppPurple
-                                )
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = AppPurple,
-                                unfocusedTextColor = AppPurple,
-                                focusedBorderColor = AppPurple,
-                                unfocusedBorderColor = AppPurple,
-                                cursorColor = AppPurple
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = authState == AuthState.PHONE_INPUT
-                        )
-                    }
+                    OutlinedTextField(
+                        value = phoneNumber,
+                        onValueChange = {
+                            if (it.length <= 10) {
+                                phoneNumber = it
+                                showError = false
+                            }
+                        },
+                        label = {
+                            Text(
+                                "Phone Number",
+                                color = AppPurple
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = AppPurple,
+                            unfocusedTextColor = AppPurple,
+                            focusedBorderColor = AppPurple,
+                            unfocusedBorderColor = AppPurple,
+                            cursorColor = AppPurple
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = authState == AuthState.PHONE_INPUT
+                    )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
                     // OTP input - fades in after phone verification
                     AnimatedVisibility(
                         visible = authState == AuthState.OTP_INPUT,
-                        enter = fadeIn(animationSpec = tween(1000)),
-                        exit = fadeOut(animationSpec = tween(500))
+                        enter = fadeIn(animationSpec = tween(500)) + expandVertically(),
+                        exit = fadeOut(animationSpec = tween(300)) + shrinkVertically()
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
@@ -181,65 +169,68 @@ fun GuestAuthScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Verify / Resend OTP button
-                    GreenButton(
-                        text = if (authState == AuthState.PHONE_INPUT) "Verify" else "Resend OTP",
-                        onClick = {
-                            when (authState) {
-                                AuthState.PHONE_INPUT -> {
-                                    if (isValidPhoneNumber(phoneNumber)) {
+                    // Verify Phone / Resend OTP button
+                    if (authState == AuthState.PHONE_INPUT) {
+                        GreenButton(
+                            text = "Verify Phone",
+                            onClick = {
+                                if (isValidPhoneNumber(phoneNumber)) {
+                                    // Check if user exists in database
+                                    val user =
+                                        UserRepository.getUserByPhoneNumber(context, phoneNumber)
+                                    if (user != null) {
+                                        // User exists, proceed to OTP
                                         authState = AuthState.OTP_INPUT
                                         showError = false
                                     } else {
+                                        // User doesn't exist
                                         showError = true
-                                        errorMessage = "Please enter a valid 10-digit phone number"
-                                    }
-                                }
-
-                                AuthState.OTP_INPUT -> {
-                                    if (otp == "123456") {
-                                        // Verify OTP
-                                        val user = UserRepository.getUserByPhoneNumber(phoneNumber)
-                                        if (user != null) {
-                                            UserRepository.saveCurrentProfile(context, user)
-                                            authState = AuthState.SUCCESS
-                                        } else {
-                                            showError = true
-                                            errorMessage = "User not found for this phone number"
-                                        }
-                                    } else if (otp.isNotEmpty()) {
-                                        showError = true
-                                        errorMessage = "Invalid OTP. Try 123456 for testing."
-                                    } else {
-                                        // Resend OTP functionality
-                                        showError = false
-                                    }
-                                }
-
-                                else -> {}
-                            }
-                        }
-                    )
-
-                    // Verify button for OTP
-                    if (authState == AuthState.OTP_INPUT && otp.length == 6) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        GreenButton(
-                            text = "Verify OTP",
-                            onClick = {
-                                if (otp == "123456") {
-                                    val user = UserRepository.getUserByPhoneNumber(phoneNumber)
-                                    if (user != null) {
-                                        UserRepository.saveCurrentProfile(context, user)
-                                        authState = AuthState.SUCCESS
-                                    } else {
-                                        showError = true
-                                        errorMessage = "User not found for this phone number"
+                                        errorMessage =
+                                            "Phone number not registered. Please use a registered number."
                                     }
                                 } else {
                                     showError = true
-                                    errorMessage = "Invalid OTP. Try 123456 for testing."
+                                    errorMessage = "Please enter a valid 10-digit phone number"
                                 }
+                            }
+                        )
+                    }
+
+                    // Verify OTP and Resend buttons (only shown when in OTP state)
+                    if (authState == AuthState.OTP_INPUT) {
+                        GreenButton(
+                            text = "Verify OTP",
+                            onClick = {
+                                if (otp.length == 6) {
+                                    if (otp == "123456") {
+                                        val user = UserRepository.getUserByPhoneNumber(
+                                            context,
+                                            phoneNumber
+                                        )
+                                        if (user != null) {
+                                            UserRepository.saveCurrentProfile(context, user)
+                                            authState = AuthState.SUCCESS
+                                        }
+                                    } else {
+                                        showError = true
+                                        errorMessage = "Invalid OTP. Try 123456 for testing."
+                                    }
+                                } else {
+                                    showError = true
+                                    errorMessage = "Please enter the 6-digit OTP"
+                                }
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        GreenButton(
+                            text = "Resend OTP",
+                            onClick = {
+                                // Reset OTP and show feedback
+                                otp = ""
+                                showError = true
+                                errorMessage = "OTP resent! Use 123456"
                             }
                         )
                     }

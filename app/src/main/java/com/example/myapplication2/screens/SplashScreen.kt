@@ -1,5 +1,6 @@
 package com.example.myapplication2.screens
 
+import android.graphics.BitmapFactory
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -8,6 +9,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.myapplication2.R
@@ -16,7 +20,33 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(onNavigateToLoginSelection: () -> Unit) {
+    val context = LocalContext.current
     var startAnimation by remember { mutableStateOf(false) }
+
+    // Try to load custom logo from assets (only as fallback)
+    val customLogo = remember {
+        val possibleNames = listOf(
+            "applogo.png",
+            "applogo.jpg",
+            "applogo.jpeg",
+            "app_logo.png",
+            "app_logo.jpg",
+            "logo.png",
+            "logo.jpg"
+        )
+        var bitmap: android.graphics.Bitmap? = null
+
+        for (name in possibleNames) {
+            try {
+                val inputStream = context.assets.open(name)
+                bitmap = BitmapFactory.decodeStream(inputStream)
+                if (bitmap != null) break
+            } catch (e: Exception) {
+                // Try next filename
+            }
+        }
+        bitmap
+    }
 
     val alpha by animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0f,
@@ -41,12 +71,27 @@ fun SplashScreen(onNavigateToLoginSelection: () -> Unit) {
             .background(AppBlack),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.splash_logo),
-            contentDescription = "Splash Logo",
-            modifier = Modifier
-                .size(200.dp)
-                .alpha(alpha)
-        )
+        // Always use app icon first, custom logo as fallback
+        if (customLogo == null) {
+            // Use app icon (ic_launcher)
+            Image(
+                painter = painterResource(id = R.mipmap.ic_launcher),
+                contentDescription = "App Logo",
+                modifier = Modifier
+                    .size(200.dp)
+                    .alpha(alpha),
+                contentScale = ContentScale.Fit
+            )
+        } else {
+            // Use custom logo from assets
+            Image(
+                bitmap = customLogo.asImageBitmap(),
+                contentDescription = "App Logo",
+                modifier = Modifier
+                    .size(200.dp)
+                    .alpha(alpha),
+                contentScale = ContentScale.Fit
+            )
+        }
     }
 }

@@ -2,20 +2,59 @@ package com.example.myapplication2
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.example.myapplication2.data.UserRepository
 import com.example.myapplication2.navigation.NavGraph
+import com.example.myapplication2.navigation.NavRoutes
+import com.example.myapplication2.ui.theme.AppBlack
 import com.example.myapplication2.ui.theme.MyApplication2Theme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.decorView.setBackgroundColor(android.graphics.Color.BLACK)
         enableEdgeToEdge()
         setContent {
             MyApplication2Theme {
-                val navController = rememberNavController()
-                NavGraph(navController = navController)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(AppBlack)
+                ) {
+                    val navController = rememberNavController()
+                    var startDestination by remember { mutableStateOf<String?>(null) }
+                    
+                    // Check if user is already logged in
+                    LaunchedEffect(Unit) {
+                        val currentProfile = UserRepository.getCurrentProfile(this@MainActivity)
+                        val isLoggedIn = UserRepository.isUserLoggedIn(this@MainActivity)
+                        
+                        startDestination = if (isLoggedIn && currentProfile != null) {
+                            // User is logged in, skip to guest main page
+                            NavRoutes.GuestMainPage.route
+                        } else {
+                            // Not logged in, start from splash
+                            NavRoutes.Splash.route
+                        }
+                    }
+                    
+                    // Only show NavGraph when start destination is determined
+                    startDestination?.let { destination ->
+                        NavGraph(
+                            navController = navController,
+                            startDestination = destination,
+                            onExitApp = { finish() }
+                        )
+                    }
+                }
             }
         }
     }
