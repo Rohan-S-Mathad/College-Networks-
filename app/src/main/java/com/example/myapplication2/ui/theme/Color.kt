@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 val AppBlack = Color(0xFF000000)
 val AppPurple = Color(0xFFA020F0)
+val AppPurpleSecondary = Color(0xFFBB86FC)  // New secondary purple
 val AppGreen = Color(0xFF00C853)
 val AppWhite = Color(0xFFFFFFFF)
 val AppLightGrey = Color(0xFFC0C0C0)

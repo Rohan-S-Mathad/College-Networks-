@@ -38,7 +38,10 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 @Composable
-fun LoginSelectionScreen(onGuestClick: () -> Unit) {
+fun LoginSelectionScreen(
+    onGuestClick: () -> Unit,
+    onLoginClick: () -> Unit
+) {
     val context = LocalContext.current
     var isVisible by remember { mutableStateOf(false) }
 
@@ -131,8 +134,8 @@ fun LoginSelectionScreen(onGuestClick: () -> Unit) {
 
                     AnimatedButton(
                         text = "Login",
-                        onClick = { /* Placeholder - no function yet */ },
-                        isPrimary = false
+                        onClick = onLoginClick,
+                        isPrimary = true
                     )
 
                     AnimatedButton(
@@ -256,7 +259,7 @@ fun AnimatedParticles() {
     // Generate random particle positions
     val particles = remember {
         List(30) {
-            Particle(
+            LoginParticle(
                 x = Random.nextFloat(),
                 y = Random.nextFloat(),
                 speed = Random.nextFloat() * 0.5f + 0.3f,
@@ -285,7 +288,7 @@ fun AnimatedParticles() {
     }
 }
 
-data class Particle(
+private data class LoginParticle(
     val x: Float,
     val y: Float,
     val speed: Float,

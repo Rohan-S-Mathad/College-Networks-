@@ -3,7 +3,12 @@ package com.example.myapplication2.navigation
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,85 +21,201 @@ fun NavGraph(
     startDestination: String = NavRoutes.Splash.route,
     onExitApp: () -> Unit = {}
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = startDestination
+    // Wrap NavHost in a Box with black background to prevent white flashes
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
     ) {
-        composable(
-            route = NavRoutes.Splash.route,
-            exitTransition = {
-                fadeOut(animationSpec = tween(300))
-            }
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = Modifier.fillMaxSize()
         ) {
-            SplashScreen(
-                onNavigateToLoginSelection = {
-                    navController.navigate(NavRoutes.LoginSelection.route) {
-                        popUpTo(NavRoutes.Splash.route) { inclusive = true }
-                    }
+            composable(
+                route = NavRoutes.Splash.route,
+                exitTransition = {
+                    fadeOut(animationSpec = tween(300))
                 }
-            )
-        }
-
-        composable(
-            route = NavRoutes.LoginSelection.route,
-            enterTransition = {
-                fadeIn(animationSpec = tween(300))
-            },
-            exitTransition = {
-                fadeOut(animationSpec = tween(300))
-            },
-            popEnterTransition = {
-                fadeIn(animationSpec = tween(300))
-            }
-        ) {
-            LoginSelectionScreen(
-                onGuestClick = {
-                    navController.navigate(NavRoutes.GuestAuth.route)
-                }
-            )
-        }
-
-        composable(
-            route = NavRoutes.GuestAuth.route,
-            enterTransition = {
-                fadeIn(animationSpec = tween(300))
-            },
-            exitTransition = {
-                fadeOut(animationSpec = tween(300))
-            },
-            popExitTransition = {
-                fadeOut(animationSpec = tween(300))
-            }
-        ) {
-            GuestAuthScreen(
-                onAuthSuccess = {
-                    navController.navigate(NavRoutes.GuestMainPage.route) {
-                        popUpTo(NavRoutes.LoginSelection.route) {
-                        inclusive = false
+            ) {
+                SplashScreen(
+                    onNavigateToLoginSelection = {
+                        navController.navigate(NavRoutes.LoginSelection.route) {
+                            popUpTo(NavRoutes.Splash.route) { inclusive = true }
                         }
                     }
+                )
+            }
+
+            composable(
+                route = NavRoutes.LoginSelection.route,
+                enterTransition = {
+                    fadeIn(animationSpec = tween(300))
                 },
-                onBackToSelection = {
-                    navController.popBackStack()
+                exitTransition = {
+                    fadeOut(animationSpec = tween(300))
+                },
+                popEnterTransition = {
+                    fadeIn(animationSpec = tween(300))
                 }
-            )
-        }
-
-        composable(
-            route = NavRoutes.GuestMainPage.route,
-            enterTransition = {
-                fadeIn(animationSpec = tween(500))
-            },
-            popExitTransition = {
-                fadeOut(animationSpec = tween(300))
-            }
-        ) {
-            // Handle back button press to exit app
-            BackHandler {
-                onExitApp()
+            ) {
+                LoginSelectionScreen(
+                    onGuestClick = {
+                        navController.navigate(NavRoutes.GuestAuth.route)
+                    },
+                    onLoginClick = {
+                        navController.navigate(NavRoutes.EmailAuth.route)
+                    }
+                )
             }
 
-            GuestMainPage()
+            // Email Authentication Route
+            composable(
+                route = NavRoutes.EmailAuth.route,
+                enterTransition = {
+                    fadeIn(animationSpec = tween(300))
+                },
+                exitTransition = {
+                    fadeOut(animationSpec = tween(300))
+                },
+                popExitTransition = {
+                    fadeOut(animationSpec = tween(300))
+                }
+            ) {
+                EmailAuthScreen(
+                    onAuthSuccess = {
+                        navController.navigate(NavRoutes.StudentMainPage.route) {
+                            popUpTo(NavRoutes.LoginSelection.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = NavRoutes.GuestAuth.route,
+                enterTransition = {
+                    fadeIn(animationSpec = tween(300))
+                },
+                exitTransition = {
+                    fadeOut(animationSpec = tween(300))
+                },
+                popExitTransition = {
+                    fadeOut(animationSpec = tween(300))
+                }
+            ) {
+                GuestAuthScreen(
+                    onAuthSuccess = {
+                        navController.navigate(NavRoutes.GuestMainPage.route) {
+                            popUpTo(NavRoutes.LoginSelection.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onBackToSelection = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = NavRoutes.GuestMainPage.route,
+                enterTransition = {
+                    fadeIn(animationSpec = tween(300))
+                },
+                popExitTransition = {
+                    fadeOut(animationSpec = tween(300))
+                }
+            ) {
+                // Handle back button press to exit app
+                BackHandler {
+                    onExitApp()
+                }
+
+                GuestMainPage()
+            }
+
+            // Student Main Page Route
+            composable(
+                route = NavRoutes.StudentMainPage.route,
+                enterTransition = {
+                    fadeIn(animationSpec = tween(300))
+                },
+                exitTransition = {
+                    fadeOut(animationSpec = tween(300))
+                },
+                popExitTransition = {
+                    fadeOut(animationSpec = tween(300))
+                },
+                popEnterTransition = {
+                    fadeIn(animationSpec = tween(300))
+                }
+            ) {
+                // Handle back button press to exit app
+                BackHandler {
+                    onExitApp()
+                }
+
+                // Student Main Page with AI Assistant
+                StudentMainPage(
+                    onAnnouncementsClick = {
+                        navController.navigate(NavRoutes.Announcements.route)
+                    },
+                    onCampusClick = {
+                        navController.navigate(NavRoutes.CampusSection.route)
+                    }
+                )
+            }
+
+            // Announcements Screen Route
+            composable(
+                route = NavRoutes.Announcements.route,
+                enterTransition = {
+                    slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = tween(600)
+                    ) + fadeIn(tween(600))
+                },
+                exitTransition = {
+                    slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = tween(600)
+                    ) + fadeOut(tween(600))
+                }
+            ) {
+                AnnouncementsScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // Campus Hub Screen Route
+            composable(
+                route = NavRoutes.CampusSection.route,
+                enterTransition = {
+                    slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = tween(600)
+                    ) + fadeIn(tween(600))
+                },
+                exitTransition = {
+                    slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = tween(600)
+                    ) + fadeOut(tween(600))
+                }
+            ) {
+                CampusScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
     }
 }

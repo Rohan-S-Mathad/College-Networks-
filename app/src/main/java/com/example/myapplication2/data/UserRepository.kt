@@ -7,6 +7,7 @@ import java.io.File
 
 object UserRepository {
     private var userDatabase: Map<String, UserProfile>? = null
+    private var emailUserDatabase: Map<String, EmailUser>? = null
 
     // Fallback data if assets file is not available
     private val defaultUserDatabase = mapOf(
@@ -108,5 +109,78 @@ object UserRepository {
         if (profileFile.exists()) {
             profileFile.delete()
         }
+
+        // Delete email profile data
+        val emailProfileFile = File(context.filesDir, "current_email_profile")
+        if (emailProfileFile.exists()) {
+            emailProfileFile.delete()
+        }
+    }
+
+    // Email User Methods
+    private fun loadEmailUsersFromAssets(context: Context): Map<String, EmailUser> {
+        return try {
+            val json =
+                context.assets.open("email_users.json").bufferedReader().use { it.readText() }
+            val gson = Gson()
+            val listType = object : TypeToken<List<EmailUser>>() {}.type
+            val userList: List<EmailUser> = gson.fromJson(json, listType)
+            userList.associateBy { it.email.lowercase() }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Fallback data
+            mapOf(
+                "rohan.mathad@rvce.edu.in" to EmailUser(
+                    name = "Rohan Mathad",
+                    email = "rohan.mathad@rvce.edu.in",
+                    rollNumber = "1RV23AI001",
+                    department = "AI & ML",
+                    otp = "123456",
+                    branch = "Artificial Intelligence & Machine Learning",
+                    college = "RV College of Engineering",
+                    classNumber = "AI-2023-A",
+                    classTeacherName = "Dr. Priya Sharma",
+                    teacherContact = "+91-98765-43210",
+                    fatherName = "Suresh Mathad",
+                    fatherContact = "+91-98765-11111",
+                    address = "Bangalore, Karnataka"
+                )
+            )
+        }
+    }
+
+    private fun initializeEmailDatabase(context: Context) {
+        if (emailUserDatabase == null) {
+            emailUserDatabase = loadEmailUsersFromAssets(context)
+        }
+    }
+
+    fun getEmailUserByEmail(context: Context, email: String): EmailUser? {
+        initializeEmailDatabase(context)
+        return emailUserDatabase?.get(email.lowercase())
+    }
+
+    fun verifyEmailOTP(context: Context, email: String, otp: String): Boolean {
+        val user = getEmailUserByEmail(context, email)
+        return user?.otp == otp
+    }
+
+    fun saveCurrentEmailProfile(context: Context, profile: EmailUser) {
+        val file = File(context.filesDir, "current_email_profile")
+        val gson = Gson()
+        val json = gson.toJson(profile)
+        file.writeText(json)
+
+        // Mark user as logged in
+        setUserLoggedIn(context, true)
+    }
+
+    fun getCurrentEmailProfile(context: Context): EmailUser? {
+        val file = File(context.filesDir, "current_email_profile")
+        if (!file.exists()) return null
+
+        val json = file.readText()
+        val gson = Gson()
+        return gson.fromJson(json, EmailUser::class.java)
     }
 }

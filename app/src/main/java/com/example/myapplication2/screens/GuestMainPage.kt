@@ -53,19 +53,19 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 // Data classes for announcements and calendar events
-data class Announcement(
+private data class GuestAnnouncement(
     val title: String,
     val category: AnnouncementCategory,
     val hoursAgo: Int = 0
 )
 
-data class AnnouncementJson(
+private data class AnnouncementJson(
     val title: String,
     val category: String,
     val hoursAgo: Int
 )
 
-enum class AnnouncementCategory(val color: Color, val label: String) {
+private enum class AnnouncementCategory(val color: Color, val label: String) {
     HACKATHON(CategoryPurple, "Hackathon Alert"),
     CLUB_EVENT(CategoryGreen, "Club Event"),
     ACADEMIC(CategoryRed, "Important Academic")
@@ -108,14 +108,14 @@ fun formatTimeAgo(hoursAgo: Int): String {
 }
 
 // Helper function to load announcements from assets
-fun loadAnnouncementsFromAssets(context: android.content.Context): List<Announcement> {
+private fun loadAnnouncementsFromAssets(context: android.content.Context): List<GuestAnnouncement> {
     return try {
         val json = context.assets.open("announcements.json").bufferedReader().use { it.readText() }
         val gson = Gson()
         val listType = object : TypeToken<List<AnnouncementJson>>() {}.type
         val announcementJsonList: List<AnnouncementJson> = gson.fromJson(json, listType)
         announcementJsonList.map { json ->
-            Announcement(
+            GuestAnnouncement(
                 title = json.title,
                 category = AnnouncementCategory.valueOf(json.category),
                 hoursAgo = json.hoursAgo
@@ -125,9 +125,21 @@ fun loadAnnouncementsFromAssets(context: android.content.Context): List<Announce
         e.printStackTrace()
         // Fallback data
         listOf(
-            Announcement("Hackathon XYZ registrations open!", AnnouncementCategory.HACKATHON, 2),
-            Announcement("Dance Club Auditions this Friday!", AnnouncementCategory.CLUB_EVENT, 5),
-            Announcement("Exam form submission ends tomorrow.", AnnouncementCategory.ACADEMIC, 12)
+            GuestAnnouncement(
+                "Hackathon XYZ registrations open!",
+                AnnouncementCategory.HACKATHON,
+                2
+            ),
+            GuestAnnouncement(
+                "Dance Club Auditions this Friday!",
+                AnnouncementCategory.CLUB_EVENT,
+                5
+            ),
+            GuestAnnouncement(
+                "Exam form submission ends tomorrow.",
+                AnnouncementCategory.ACADEMIC,
+                12
+            )
         )
     }
 }
@@ -701,7 +713,7 @@ fun AnnouncementsDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
-fun AnnouncementCard(announcement: Announcement) {
+private fun AnnouncementCard(announcement: GuestAnnouncement) {
     var isVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {

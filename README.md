@@ -1,8 +1,48 @@
 # MyApplication2 - Guest Authentication App
 
-A modern Android application built with Jetpack Compose featuring a complete authentication flow
-with splash screen, phone verification, OTP validation, and a comprehensive guest home screen with *
-*editable data files in assets folder** and **session persistence**.
+A modern Android application built with Jetpack Compose featuring guest authentication and campus
+navigation.
+
+## 🔐 Login Methods
+
+The app supports **two authentication methods**:
+
+### 1. **Student Login** (Email-based)
+
+- Uses college email address
+- Each student has unique OTP
+- Shows **Student Main Page** after login
+- Stores session in `current_email_profile`
+- Features: AI Assistant, Campus features, etc.
+
+### 2. **Guest Login** (Phone-based)
+
+- Uses phone number (10 digits)
+- Fixed OTP: 123456
+- Shows **Guest Main Page** after login
+- Stores session in `current_profile`
+- Features: Announcements, Calendar, Timetable, etc.
+
+**Both buttons now have the same styling** with purple gradient and pulse animation!
+
+## 🐛 Recent Bug Fixes
+
+### Fixed Issues (Latest Update)
+
+1. **White Flash Fixed** ✅
+    - Navigation now has black scrim background
+    - No more white flashes during page transitions
+    - Smooth fade transitions (300ms)
+
+2. **Back Button Fixed** ✅
+    - Single back press now works correctly
+    - Fixed back stack management (inclusive = true)
+    - Pressing back on main page exits app properly
+
+3. **OTP Verification** ✅
+    - OTP input only appears if phone number exists in database
+    - Shows error message "Phone number not registered" for unregistered numbers
+    - Validates phone number before showing OTP field
 
 ## Features
 

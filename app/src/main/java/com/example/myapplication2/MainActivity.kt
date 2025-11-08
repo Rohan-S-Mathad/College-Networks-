@@ -34,15 +34,25 @@ class MainActivity : ComponentActivity() {
                     
                     // Check if user is already logged in
                     LaunchedEffect(Unit) {
-                        val currentProfile = UserRepository.getCurrentProfile(this@MainActivity)
+                        val guestProfile = UserRepository.getCurrentProfile(this@MainActivity)
+                        val emailProfile = UserRepository.getCurrentEmailProfile(this@MainActivity)
                         val isLoggedIn = UserRepository.isUserLoggedIn(this@MainActivity)
-                        
-                        startDestination = if (isLoggedIn && currentProfile != null) {
-                            // User is logged in, skip to guest main page
-                            NavRoutes.GuestMainPage.route
-                        } else {
-                            // Not logged in, start from splash
-                            NavRoutes.Splash.route
+
+                        startDestination = when {
+                            isLoggedIn && emailProfile != null -> {
+                                // Email user is logged in, go to Student Main Page
+                                NavRoutes.StudentMainPage.route
+                            }
+
+                            isLoggedIn && guestProfile != null -> {
+                                // Guest user is logged in, go to Guest Main Page
+                                NavRoutes.GuestMainPage.route
+                            }
+
+                            else -> {
+                                // Not logged in, start from splash
+                                NavRoutes.Splash.route
+                            }
                         }
                     }
                     

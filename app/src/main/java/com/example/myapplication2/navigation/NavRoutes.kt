@@ -5,4 +5,10 @@ sealed class NavRoutes(val route: String) {
     object LoginSelection : NavRoutes("login_selection")
     object GuestAuth : NavRoutes("guest_auth")
     object GuestMainPage : NavRoutes("guest_main_page")
+
+    // New routes for email login flow
+    object EmailAuth : NavRoutes("email_auth")
+    object StudentMainPage : NavRoutes("student_main_page")
+    object CampusSection : NavRoutes("campus_section")
+    object Announcements : NavRoutes("announcements")
 }

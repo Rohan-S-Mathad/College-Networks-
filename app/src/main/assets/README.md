@@ -119,6 +119,55 @@ Contains test user data for authentication.
 
 **To add more users:** Simply add more objects to the JSON array following the same format.
 
+### email_users.json
+
+Contains student profiles for email authentication with individual OTPs.
+
+**Structure:**
+
+```json
+[
+  {
+    "name": "Rohan Mathad",
+    "email": "rohan.mathad@rvce.edu.in",
+    "rollNumber": "1RV23AI001",
+    "department": "AI & ML",
+    "otp": "123456",
+    "branch": "Artificial Intelligence & Machine Learning",
+    "college": "RV College of Engineering",
+    "classNumber": "AI-2023-A",
+    "classTeacherName": "Dr. Priya Sharma",
+    "teacherContact": "+91-98765-43210",
+    "fatherName": "Suresh Mathad",
+    "fatherContact": "+91-98765-11111",
+    "address": "Bangalore, Karnataka"
+  }
+]
+```
+
+**Current Test Users:**
+
+| Name         | Email                    | Roll Number | OTP    |
+|--------------|--------------------------|-------------|--------|
+| Rohan Mathad | rohan.mathad@rvce.edu.in | 1RV23AI001  | 123456 |
+| Aditi Rao    | aditi.rao@rvce.edu.in    | 1RV23AI015  | 234567 |
+| Arjun Kumar  | arjun.kumar@rvce.edu.in  | 1RV23AI032  | 345678 |
+
+**How to add more students:**
+
+1. Copy an existing user object
+2. Change the email (must be unique and valid format)
+3. Update name, roll number, and other fields
+4. **Set a unique 6-digit OTP** for each user
+5. Save the file
+
+**Testing:**
+
+- Each user has their own unique OTP
+- Email verification checks if email exists in database
+- OTP field only shows for registered emails
+- Wrong OTP shows error message
+
 ### announcements.json
 Contains announcements with categories and timestamps.
 
@@ -173,6 +222,7 @@ assets/
 ├── collegeimage.png/jpg       # Guest home background (blurred)
 ├── tt.png/jpg                 # Timetable image (zoom & pan)
 ├── users.json                 # User profiles
+├── email_users.json           # Student profiles
 ├── announcements.json         # Announcements with timestamps
 └── calendar_events.json       # Calendar events
 ```
