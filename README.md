@@ -1,6 +1,7 @@
-# MyApplication2 - Guest Authentication App
+# MyApplication2 - Campus Integration and Innovation APP
+by team Pacific
 
-A modern Android application built with Jetpack Compose featuring guest authentication and campus
+A modern Android application built with Jetpack Compose featuring classroom features and campus
 navigation.
 
 ## 🔐 Login Methods
